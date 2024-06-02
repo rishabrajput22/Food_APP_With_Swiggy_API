@@ -1,8 +1,9 @@
 import ResturantCard from "./ResturantCard";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import Shimmer from "./Shimmer";
 import { Link } from "react-router-dom";
 import useOnlineStatus from "../utils/useOnlineStatus";
+import UserContext from "../utils/UserContext";
 
 const Body = () => {
   const [listOfResturants, setListOfResturants] = useState([]);
@@ -20,8 +21,6 @@ const Body = () => {
 
     const json = await data.json();
 
-    console.log(json);
-
     setListOfResturants(
       json?.data?.cards[4]?.card?.card?.gridElements?.infoWithStyle?.restaurants
     );
@@ -35,6 +34,8 @@ const Body = () => {
 
   if (onlineStatus === false) return <h1>Looks Like your Internet is Down.</h1>;
 
+  const { loggedInUser, setUserName } = useContext(UserContext);
+
   return listOfResturants.length === 0 ? (
     <Shimmer />
   ) : (
@@ -43,6 +44,7 @@ const Body = () => {
         <div className="search p-4 ">
           <input
             type="text"
+            data-testid="searchInput"
             className="border border-solid border-black "
             value={searchText}
             onChange={(e) => {
@@ -52,8 +54,6 @@ const Body = () => {
           <button
             className="font-bold px-4 py-2 bg-green-400 m-4 rounded-lg "
             onClick={() => {
-              console.log(searchText);
-
               const filteredRestaurants = listOfResturants.filter((res) =>
                 res.info.name.toLowerCase().includes(searchText.toLowerCase())
               );
@@ -69,13 +69,21 @@ const Body = () => {
             className="font-bold px-4 py-2 bg-gray-400 rounded-lg"
             onClick={() => {
               const filteredList = listOfResturants.filter(
-                (res) => res.info.avgRating > 4.2 // Check if avgRating exists before accessing it
+                (res) => res.info.avgRating > 4.4 // Check if avgRating exists before accessing it
               );
               setListOfResturants(filteredList);
             }}
           >
             Top Rated Resturants
           </button>
+        </div>
+        <div className="search m-4 p-4 flex items-center">
+          <label>UserNamee : </label>
+          <input
+            className="border border-black p-2"
+            value={loggedInUser}
+            onChange={(e) => setUserName(e.target.value)}
+          />
         </div>
       </div>
       <div className="flex flex-wrap">

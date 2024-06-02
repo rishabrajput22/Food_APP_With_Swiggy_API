@@ -1,51 +1,55 @@
-
 import Shimmer from "./Shimmer";
 import { useParams } from "react-router-dom";
 import useRestaurantMenu from "../utils/useRestaurantMenu";
+import RestaurantCategory from "./RestaurantCategory";
+import { useState } from "react";
 
 const RestaurantMenu = () => {
-
   const { resId } = useParams();
 
   const resInfo = useRestaurantMenu(resId);
 
-  // useEffect(() => {
-  //   fetchMenu();
-  // }, []);
+  const [showIndex, setShowIndex] = useState(0);
 
-  // const fetchMenu = async () => {
-  //   const data = await fetch(MENU_API + resId);
-
-  //   const json = await data.json();
-
-  //   console.log(json, "menu");
-  //   setResInfo(json.data);
-  // };
-
-  if (resInfo === null) return <Shimmer />; // Return Shimmer component if resInfo is null
+  if (resInfo === null) return <Shimmer />;
 
   const { name, cuisines, costForTwoMessage } =
     resInfo?.cards[2]?.card?.card?.info || {};
+
   const { itemCards } =
     resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards[2]?.card
       ?.card || {};
 
+  const categories =
+    resInfo?.cards[4]?.groupedCard?.cardGroupMap?.REGULAR?.cards.filter(
+      (c) =>
+        c.card?.["card"]?.["@type"] ===
+        "type.googleapis.com/swiggy.presentation.food.v2.ItemCategory"
+    );
+
+  console.log("cat", categories);
+
+  const handleToggle = (index) => {
+    setShowIndex((prevIndex) => (prevIndex === index ? null : index));
+  };
+
   return (
-    <div className="menu">
-      <h1> {name}</h1>
-      <p>
+    <div className=" bg-slate-400 text-center">
+      <h1 className="font-bold text-[35px]">{name}</h1>
+      <p className="font-bold text-[25px] text-pink-700 pb-3">
         {Array.isArray(cuisines) ? cuisines.join(", ") : ""} -{" "}
         {costForTwoMessage}
       </p>
-      <h2>Menus</h2>
-      <ul>
-        {Array.isArray(itemCards) &&
-          itemCards.map((item) => (
-            <li key={item.card.info.id}>
-              {item.card.info.name} - {costForTwoMessage.substr(0, 4)}
-            </li>
-          ))}
-      </ul>
+      {categories.map((category, index) => (
+        <RestaurantCategory
+          key={category.card.card.title}
+          data={category.card.card}
+          showItems={index === showIndex}
+          setShowIndex={() => handleToggle(index)}
+          // showItems={index === showIndex ? true : false }
+          // setShowIndex={() => setShowIndex(index)}
+        />
+      ))}
     </div>
   );
 };
